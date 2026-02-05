@@ -1,9 +1,14 @@
 pycache/
 *.py[cod]
 *$py.class
+
 .env
+
 .idea/
 *.iml
 *.ipr
 *.iws
+
 *.log
+
+/sandbox
