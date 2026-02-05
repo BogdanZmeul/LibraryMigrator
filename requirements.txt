@@ -1,0 +1,15 @@
+langchain-core
+langgraph
+langchain-anthropic
+
+pydantic
+
+python-dotenv
+
+libcst
+
+ruff
+pytest
+
+chromadb
+sentence-transformers
