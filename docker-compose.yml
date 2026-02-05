@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  migrator_agent:
+    build: .
+    container_name: library_migrator
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    tty: true
+    stdin_open: true
