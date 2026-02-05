@@ -1,3 +1,5 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+
 langchain-core
 langgraph
 langchain-anthropic
@@ -12,4 +14,6 @@ ruff
 pytest
 
 chromadb
+
+torch --index-url https://download.pytorch.org/whl/cpu
 sentence-transformers
