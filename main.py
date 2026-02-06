@@ -1,7 +1,7 @@
 import typer
 from typing import Optional
 from agents.logger_config import setup_logger
-from agents.tools.git_ops import *
+from agents.tools.git_ops import init_migration_branch
 
 logger = setup_logger()
 
