@@ -32,6 +32,13 @@ docker-compose exec migrator_agent python main.py /app/sandbox/<Назва ре�
 docker-compose exec migrator_agent pip list
 ```
 
+## Перед тим як пушити, обов'язково перевірити проєкт, щоб не було 30 комітів `fix something...`
+```bash
+ruff check . 
+# або
+ruff check . --fix
+```
+
 ## Коли перезбирати Docker?
 Вам потрібно запустити `docker-compose build`, лише якщо:
 1. Змінився `requirements.txt` (нові залежності).
