@@ -13,3 +13,4 @@ libcst
 
 ruff
 pytest
+typer>=0.9.0
