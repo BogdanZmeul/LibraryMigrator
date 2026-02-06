@@ -1,62 +1,63 @@
 import subprocess
 import os
 import logging
-import shutil
 
 logger = logging.getLogger(__name__)
 
-SANDBOX_DIR = "/app/sandbox"
 
+def init_migration_branch(path: str):
+    """
+    Готує існуючий репозиторій: налаштовує Git та створює нову гілку.
+    """
+    subprocess.run(["git", "config", "--global", "--add", "safe.directory", path], check=True)
 
-def clean_sandbox():
-    if not os.path.exists(SANDBOX_DIR):
-        os.makedirs(SANDBOX_DIR, exist_ok=True)
-        return
+    if not os.path.exists(path) or not os.listdir(path):
+        raise Exception(f"Папка {path} порожня або не існує. Перевірте монтаж Volume.")
 
-    logger.info("Очищення папки sandbox...")
+    files = os.listdir(path)
 
-    for filename in os.listdir(SANDBOX_DIR):
-        file_path = os.path.join(SANDBOX_DIR, filename)
-        try:
-            if os.path.isfile(file_path) or os.path.islink(file_path):
-                os.unlink(file_path)
-            elif os.path.isdir(file_path):
-                shutil.rmtree(file_path)
-        except Exception as e:
-            logger.error(f"Не вдалося видалити {file_path}. Причина: {e}")
-            raise
-
-
-def prepare_repo(source: str):
-    logging.info(f"Початок підготовки репозиторію з: {source}")
-
-    clean_sandbox()
+    if '.git' not in files:
+        raise Exception(
+            f"У папці {path} не знайдено прихованої директорії .git. Ви впевнені, що це корінь репозиторію?")
 
     try:
-        logger.info(f"Клонування репозиторію в {SANDBOX_DIR}...")
-        subprocess.run(["git", "clone", source, SANDBOX_DIR], check=True)
+        subprocess.run(["git", "-C", path, "rev-parse", "--is-inside-work-tree"],
+                       check=True, capture_output=True)
 
-        subprocess.run(["git", "-C", SANDBOX_DIR, "config", "user.email", "agent@ai.com"], check=True)
-        subprocess.run(["git", "-C", SANDBOX_DIR, "config", "user.name", "AI Agent"], check=True)
+        status = subprocess.run(["git", "-C", path, "status", "--porcelain"],
+                                capture_output=True, text=True, check=True)
 
-        subprocess.run(["git", "-C", SANDBOX_DIR, "checkout", "-b", "ai-fix"], check=True)
-        logger.info("Гілка 'ai-fix' створена успішно.")
+        if status.stdout.strip():
+            logger.info("Знайдено незакомічені зміни. Виконую 'git stash'...")
+            subprocess.run(["git", "-C", path, "stash"], check=True)
+            logger.info("'git stash' успішно виконано!")
 
-    except subprocess.CalledProcessError as e:
-        logger.error(f"🔥 Помилка Git: {e}")
-        raise e
+        subprocess.run(["git", "-C", path, "config", "user.email", "agent@ai.com"], check=True)
+        subprocess.run(["git", "-C", path, "config", "user.name", "AI Migrator Agent"], check=True)
+
+        branch_name = "fix/ai-library-migration"
+        subprocess.run(["git", "-C", path, "checkout", "-B", branch_name], check=True)
+
+        logger.info(f"Перемкнуто на гілку: {branch_name}")
+
+    except subprocess.CalledProcessError:
+        logger.error(f"Помилка: Папка {path} не містить Git-репозиторію.")
+        raise
 
 
-def create_commit(title: str, description: str = None):
+def create_commit(path: str, title: str, description: str = None):
+    """
+    Робить коміт змін у робочій папці.
+    """
     try:
-        status = subprocess.run(["git", "-C", SANDBOX_DIR, "status", "--porcelain"], capture_output=True, text=True)
+        status = subprocess.run(["git", "-C", path, "status", "--porcelain"], capture_output=True, text=True)
         if not status.stdout.strip():
-            logger.warning("⚠️ Немає змін для коміту.")
+            logger.warning("Немає змін для коміту.")
             return
 
-        subprocess.run(["git", "-C", SANDBOX_DIR, "add", "."], check=True)
+        subprocess.run(["git", "-C", path, "add", "."], check=True)
 
-        cmd = ["git", "-C", SANDBOX_DIR, "commit", "-m", title]
+        cmd = ["git", "-C", path, "commit", "-m", title]
         if description:
             cmd += ["-m", description]
 

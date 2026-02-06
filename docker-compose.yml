@@ -3,6 +3,7 @@ version: '3.8'
 services:
   migrator_agent:
     build: .
+    image: library-migrator:latest
     container_name: library_migrator
     env_file:
       - .env
