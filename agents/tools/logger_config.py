@@ -9,7 +9,7 @@ def setup_logger():
     """
     log_filename = "agent.log"
 
-    if not os.access(".", os.W_OK):
+    if not os.access("..", os.W_OK):
         if os.path.exists("/project"):
             log_filename = "/project/agent.log"
         else:
