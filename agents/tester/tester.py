@@ -4,6 +4,7 @@ Tester Agent - runs pytest and collects errors after migration
 
 import logging
 import subprocess
+import json
 from pathlib import Path
 from typing import Dict, List
 
@@ -38,13 +39,7 @@ class Tester:
         Main entry point - runs pytest and returns results
 
         Returns:
-            Dictionary with test results:
-            {
-                "status": "success" | "failed" | "error",
-                "errors_count": int,
-                "errors_file": str or None,
-                "exit_code": int
-            }
+            Dictionary with test results
         """
         logger.info("=" * 60)
         logger.info("Starting test execution...")
@@ -54,23 +49,41 @@ class Tester:
         result = self._execute_pytest()
         exit_code = result['returncode']
 
-        # Determine status based on exit code
+        # Determine status and create errors
         if exit_code == 0:
             status = "success"
             logger.info("✓ All tests passed successfully!")
+            errors = []
         elif exit_code == -1:
-            # Special case: execution error (timeout, pytest not found, etc.)
             status = "error"
             logger.error("✗ Test execution failed due to system error")
+            # Create generic system error
+            errors = [{
+                "error_id": 1,
+                "message": result['stderr'],
+                "file": "unknown",
+                "line": "unknown",
+                "context": "System error during test execution"
+            }]
         else:
-            # pytest failed (exit code 1 or higher)
             status = "failed"
             logger.warning(f"✗ Tests failed with exit code: {exit_code}")
+            # Create generic error (will be replaced with real parsing later)
+            errors = [{
+                "error_id": 1,
+                "message": "Tests failed. See pytest output for details.",
+                "file": "unknown",
+                "line": "unknown",
+                "context": result['stderr'][:500]  # First 500 chars
+            }]
+
+        # Save errors to JSON
+        errors_file = self._save_errors(errors)
 
         return {
             "status": status,
-            "errors_count": 0,  # Will be updated when we parse errors
-            "errors_file": None,
+            "errors_count": len(errors),
+            "errors_file": errors_file,
             "exit_code": exit_code
         }
 
@@ -152,5 +165,17 @@ class Tester:
         Returns:
             Path to saved errors.json file
         """
-        # TODO: Implement error saving
-        pass
+        output_file = self.repo_path / "errors.json"
+
+        logger.info(f"Saving {len(errors)} errors to {output_file}")
+
+        try:
+            with open(output_file, 'w', encoding='utf-8') as f:
+                json.dump(errors, f, indent=2, ensure_ascii=False)
+
+            logger.info(f"✓ Errors successfully saved to {output_file}")
+            return str(output_file)
+
+        except Exception as e:
+            logger.error(f"Failed to save errors.json: {str(e)}")
+            return None
