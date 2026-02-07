@@ -9,6 +9,8 @@ pycache/
 *.ipr
 *.iws
 
+/venv
+
 *.log
 
 /sandbox
