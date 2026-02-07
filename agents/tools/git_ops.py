@@ -6,19 +6,16 @@ logger = logging.getLogger(__name__)
 
 
 def init_migration_branch(path: str):
-    """
-    Готує існуючий репозиторій: налаштовує Git та створює нову гілку.
-    """
     subprocess.run(["git", "config", "--global", "--add", "safe.directory", path], check=True)
 
     if not os.path.exists(path) or not os.listdir(path):
-        raise Exception(f"Папка {path} порожня або не існує. Перевірте монтаж Volume.")
+        raise Exception(f"The folder {path} is empty or does not exist. Check the Volume mount.")
 
     files = os.listdir(path)
 
     if '.git' not in files:
         raise Exception(
-            f"У папці {path} не знайдено прихованої директорії .git. Ви впевнені, що це корінь репозиторію?")
+            f"No hidden .git directory found in folder {path}. Are you sure this is the root of the repository?")
 
     try:
         subprocess.run(["git", "-C", path, "rev-parse", "--is-inside-work-tree"],
@@ -28,9 +25,9 @@ def init_migration_branch(path: str):
                                 capture_output=True, text=True, check=True)
 
         if status.stdout.strip():
-            logger.info("Знайдено незакомічені зміни. Виконую 'git stash'...")
+            logger.info("Found uncommitted changes. Running 'git stash'...")
             subprocess.run(["git", "-C", path, "stash"], check=True)
-            logger.info("'git stash' успішно виконано!")
+            logger.info("'git stash' successfully executed!")
 
         subprocess.run(["git", "-C", path, "config", "user.email", "agent@ai.com"], check=True)
         subprocess.run(["git", "-C", path, "config", "user.name", "AI Migrator Agent"], check=True)
@@ -38,21 +35,18 @@ def init_migration_branch(path: str):
         branch_name = "fix/ai-library-migration"
         subprocess.run(["git", "-C", path, "checkout", "-B", branch_name], check=True)
 
-        logger.info(f"Перемкнуто на гілку: {branch_name}")
+        logger.info(f"Switched to branch: {branch_name}")
 
     except subprocess.CalledProcessError:
-        logger.error(f"Помилка: Папка {path} не містить Git-репозиторію.")
+        logger.error(f"Error: The folder {path} does not contain a Git repository.")
         raise
 
 
 def create_commit(path: str, title: str, description: str = None):
-    """
-    Робить коміт змін у робочій папці.
-    """
     try:
         status = subprocess.run(["git", "-C", path, "status", "--porcelain"], capture_output=True, text=True)
         if not status.stdout.strip():
-            logger.warning("Немає змін для коміту.")
+            logger.warning("There are no changes to the commit.")
             return
 
         subprocess.run(["git", "-C", path, "add", "."], check=True)
@@ -62,7 +56,7 @@ def create_commit(path: str, title: str, description: str = None):
             cmd += ["-m", description]
 
         subprocess.run(cmd, check=True)
-        logger.info(f"Створено коміт: {title}")
+        logger.info(f"Commit created: {title}")
 
     except subprocess.CalledProcessError as e:
-        logger.error(f"Не вдалося створити коміт: {e}")
+        logger.error(f"Failed to create commit: {e}")
