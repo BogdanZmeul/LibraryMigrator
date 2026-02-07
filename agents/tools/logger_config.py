@@ -1,10 +1,11 @@
-import logging
+﻿import logging
 import os
+
 
 def setup_logger():
     """
-    Налаштовує глобальний логер.
-    Викликати цю функцію ТІЛЬКИ ОДИН РАЗ у main.py на самому початку.
+    Configure the global logger.
+    Call this once at startup in main.py.
     """
     log_filename = "agent.log"
 
@@ -16,14 +17,14 @@ def setup_logger():
 
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         handlers=[
-            logging.FileHandler(log_filename, mode='w', encoding='utf-8'),
-            #logging.StreamHandler(sys.stdout) # косоль
+            logging.FileHandler(log_filename, mode="w", encoding="utf-8"),
+            # logging.StreamHandler(sys.stdout)  # console
         ],
         force=True
     )
 
-    print(f"Логи записуються у файл: {log_filename}")
+    print(f"Logs are written to: {log_filename}")
 
     return logging.getLogger(__name__)

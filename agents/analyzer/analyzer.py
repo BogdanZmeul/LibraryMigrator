@@ -42,9 +42,9 @@ def analyzer_node(state):
     plan_path = state.get("plan_path", "migration_plan.json")
     errors_path = state.get("errors_path", "errors.json")
 
-    lib_name = state.get("lib_name")
-    from_ver = state.get("from_ver")
-    to_ver = state.get("to_ver")
+    library = state.get("library")
+    old_version = state.get("old_version")
+    new_version = state.get("new_version")
     api_key = os.getenv("ANTHROPIC_API_KEY")
 
     errors_data = load_json_file(errors_path)
@@ -76,9 +76,9 @@ def analyzer_node(state):
         return {"status": "error", "error": "LLM init failed"}
 
     formatted_system_text = system_template.format(
-        lib_name=lib_name,
-        from_ver=from_ver,
-        to_ver=to_ver
+        library=library,
+        old_version=old_version,
+        new_version=new_version
     )
 
     system_message = SystemMessage(

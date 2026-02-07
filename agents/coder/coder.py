@@ -22,15 +22,19 @@ def coder_node(state):
     plan_path = state.get("plan_path", "migration_plan.json")
     project_path = state.get("project_path", ".")
 
-    lib_name = state.get("lib_name", "library")
-    from_ver = state.get("from_ver", "old")
-    to_ver = state.get("to_ver", "new")
+    library = state.get("library", "library")
+    old_version = state.get("old_version", "old")
+    new_version = state.get("new_version", "new")
     api_key = os.getenv("ANTHROPIC_API_KEY")
 
     migration_plan = load_json_file(plan_path)
     if not migration_plan:
         logger.warning("Migration plan is empty or invalid.")
-        return {"status": "all_done"}
+        return {
+            "status": "all_done",
+            "plan_path": plan_path,
+            "has_pending_tasks": False
+        }
 
     current_task = None
     task_index = -1
@@ -43,7 +47,11 @@ def coder_node(state):
 
     if not current_task:
         logger.info("Coder: No pending tasks found. All done.")
-        return {"status": "all_done"}
+        return {
+            "status": "all_done",
+            "plan_path": plan_path,
+            "has_pending_tasks": False
+        }
 
     logger.info(f"Coder: Picked up task {current_task['task_id']}: {current_task['title']}")
 
@@ -68,12 +76,16 @@ def coder_node(state):
         llm_with_tools = llm.bind_tools(tools)
     except Exception as e:
         logger.critical(f"Failed to initialize Coder LLM: {e}")
-        return {"status": "error"}
+        return {
+            "status": "error",
+            "plan_path": plan_path,
+            "has_pending_tasks": False
+        }
 
     formatted_system = CODER_SYSTEM_TEMPLATE.format(
-        lib_name=lib_name,
-        from_ver=from_ver,
-        to_ver=to_ver,
+        library=library,
+        old_version=old_version,
+        new_version=new_version,
         task_title=current_task['title'],
         task_description=current_task['description'],
         file_list=", ".join(files_to_edit)
@@ -98,7 +110,11 @@ def coder_node(state):
 
     except Exception as e:
         logger.error(f"Coder: LLM execution failed: {e}")
-        return {"status": "error"}
+        return {
+            "status": "error",
+            "plan_path": plan_path,
+            "has_pending_tasks": False
+        }
 
     commit_msg = f"Refactor: {current_task['title']}"
     create_commit(project_path, commit_msg, description=current_task.get("description"))
@@ -113,7 +129,14 @@ def coder_node(state):
     save_json_file(plan_path, migration_plan)
     logger.info(f"Coder: Task {current_task['task_id']} completed and saved.")
 
+    has_pending_tasks = any(task.get("status") == "pending" for task in migration_plan)
+    if has_pending_tasks:
+        logger.info("Coder: Pending tasks remain after this run.")
+    else:
+        logger.info("Coder: No pending tasks remain after this run.")
+
     return {
-        "status": "coding",
-        "plan_path": plan_path
+        "status": "coding" if has_pending_tasks else "all_done",
+        "plan_path": plan_path,
+        "has_pending_tasks": has_pending_tasks
     }

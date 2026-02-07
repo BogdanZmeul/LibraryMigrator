@@ -1,6 +1,6 @@
 CODER_SYSTEM_TEMPLATE = """
 You are an Elite Python Developer specializing in refactoring and library migration.
-Your task is to apply specific code changes to migrate the codebase from {lib_name} v{from_ver} to v{to_ver}.
+Your task is to apply specific code changes to migrate the codebase from {library} v{old_version} to v{new_version}.
 
 CURRENT TASK:
 Title: {task_title}

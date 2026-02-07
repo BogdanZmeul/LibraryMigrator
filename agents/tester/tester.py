@@ -29,7 +29,7 @@ def tester_node(state):
             runner = LocalRunner()
         else:
             logger.warning("No Dockerfile or requirements.txt found. Cannot determine run strategy.")
-            return {"status": "cannot_test"}
+            return {"status": "cannot_test", "needs_analysis": False}
 
     # run code
     return_code, stderr = runner.run(project_path)
@@ -40,13 +40,14 @@ def tester_node(state):
         # We do NOT write to errors.json because this is not a code fixable by Analyzer
         return {
             "status": "dependency_error",
-            "message": "Migration complete, but tests failed due to dependency conflicts. Manual update required."
+            "message": "Migration complete, but tests failed due to dependency conflicts. Manual update required.",
+            "needs_analysis": False
         }
 
     # CASE B: Success (0)
     if return_code == 0:
         logger.info("Execution finished successfully. No runtime errors detected.")
-        return {"status": "success"}
+        return {"status": "success", "needs_analysis": False}
 
     # CASE C: Runtime Errors (Non-zero)
     logger.info(f"Runtime errors detected (RC={return_code}). Parsing logs...")
@@ -56,7 +57,7 @@ def tester_node(state):
     if not structured_errors:
         logger.warning("Tester: Execution failed, but no Python traceback found in logs.")
         # This might be a segfault or other crash. We can't fix it automatically easily.
-        return {"status": "failed_unknown"}
+        return {"status": "failed_unknown", "needs_analysis": False}
 
     logger.info(f"Tester: Found {len(structured_errors)} errors. Saving to {errors_path}")
     save_json_file(errors_path, structured_errors)
@@ -64,5 +65,6 @@ def tester_node(state):
     # Return 'failed' to trigger the loop back to Analyzer (Fixing Mode)
     return {
         "status": "failed",
-        "errors_path": errors_path
+        "errors_path": errors_path,
+        "needs_analysis": True
     }
