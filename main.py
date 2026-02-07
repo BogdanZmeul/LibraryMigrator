@@ -3,7 +3,7 @@ import asyncio
 import typer
 from dotenv import load_dotenv
 from typing import Optional
-from agents.logger_config import setup_logger
+from agents.tools.logger_config import setup_logger
 from agents.tools.git_ops import init_migration_branch
 from agents.searcher.searcher import RepoSearcher
 
