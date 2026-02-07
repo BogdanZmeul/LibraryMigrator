@@ -3,6 +3,7 @@ Tester Agent - runs pytest and collects errors after migration
 """
 
 import logging
+import subprocess
 from pathlib import Path
 from typing import Dict, List
 
@@ -37,24 +38,22 @@ class Tester:
         Main entry point - runs pytest and returns results
 
         Returns:
-            Dictionary with test results:
-            {
-                "status": "success" | "failed" | "not_implemented",
-                "errors_count": int,
-                "errors_file": str or None
-            }
+            Dictionary with test results
         """
         logger.info("=" * 60)
         logger.info("Starting test execution...")
         logger.info("=" * 60)
 
-        # TODO: Implement actual testing logic
-        logger.warning("Tester logic not implemented yet")
+        # Execute pytest
+        result = self._execute_pytest()
+
+        logger.info(f"Test execution finished with exit code: {result['returncode']}")
 
         return {
-            "status": "not_implemented",
+            "status": "not_implemented",  # Will be implemented in next commit
             "errors_count": 0,
-            "errors_file": None
+            "errors_file": None,
+            "exit_code": result['returncode']  # Added for debugging
         }
 
     def _execute_pytest(self) -> Dict:
@@ -62,10 +61,55 @@ class Tester:
         Execute pytest via subprocess
 
         Returns:
-            Dictionary with execution results
+            Dictionary with execution results:
+            {
+                "returncode": int,
+                "stdout": str,
+                "stderr": str
+            }
         """
-        # TODO: Implement pytest execution
-        pass
+        logger.info(f"Executing pytest in directory: {self.repo_path}")
+
+        command = ["pytest", "tests/", "-v", "--tb=short"]
+
+        try:
+            result = subprocess.run(
+                command,
+                cwd=self.repo_path,
+                capture_output=True,
+                text=True,
+                timeout=300  # 5 minutes timeout
+            )
+
+            logger.info(f"Pytest execution completed with exit code: {result.returncode}")
+
+            return {
+                "returncode": result.returncode,
+                "stdout": result.stdout,
+                "stderr": result.stderr
+            }
+
+        except subprocess.TimeoutExpired:
+            logger.error("Pytest execution timed out after 5 minutes")
+            return {
+                "returncode": -1,
+                "stdout": "",
+                "stderr": "Test execution timed out after 300 seconds"
+            }
+        except FileNotFoundError:
+            logger.error("Pytest not found. Is it installed?")
+            return {
+                "returncode": -1,
+                "stdout": "",
+                "stderr": "pytest command not found. Please install pytest."
+            }
+        except Exception as e:
+            logger.error(f"Unexpected error during pytest execution: {str(e)}")
+            return {
+                "returncode": -1,
+                "stdout": "",
+                "stderr": f"Unexpected error: {str(e)}"
+            }
 
     def _parse_errors(self, output: str) -> List[Dict]:
         """
@@ -96,7 +140,15 @@ class Tester:
 
 # Quick test
 if __name__ == "__main__":
-    print("Testing Tester agent skeleton...")
-    tester = Tester("/fake/test/path")
+    import sys
+
+    # Передай шлях до тестового проекту як аргумент
+    repo_path = sys.argv[1] if len(sys.argv) > 1 else "test-project"
+
+    print(f"Testing Tester agent with repo: {repo_path}")
+    tester = Tester(repo_path)
     result = tester.run_tests()
-    print(f"Result: {result}")
+
+    print(f"\n{'=' * 60}")
+    print(f"Final Result: {result}")
+    print(f"{'=' * 60}")
