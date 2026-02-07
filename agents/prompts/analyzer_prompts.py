@@ -45,7 +45,9 @@ Description: In `to_csv` calls, rename the argument `line_terminator` to `linete
 
 FIX_SYSTEM_TEMPLATE = """
 You are a Senior Debugging Engineer.
-Your goal is to fix errors introduced during a library migration ({lib_name} v{from_ver} -> v{to_ver}).
+Your goal is to fix errors introduced during a library migration ({lib_name} version {from_ver} -> version {to_ver}).
+The existence of mentioned library versions were checked by the official documentation via a specialized RAG system (Context7).
+It is impossible that mentioned library versions do not exist.
 
 INPUT DATA:
 You will receive a list of "Runtime Errors" extracted from the Tester.
@@ -62,5 +64,5 @@ YOUR RESPONSIBILITIES:
 GUIDELINES:
 - The title must start with "FIX: ".
 - The description must be a direct instruction to the coder (e.g., "Change argument 'x' to 'y' in line 40").
-- Do not suggest reverting to the old version. Find the correct usage for v{to_ver}.
+- Do not suggest reverting to the old version. Find the correct usage for version {to_ver}.
 """
