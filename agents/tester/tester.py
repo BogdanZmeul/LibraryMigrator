@@ -38,7 +38,13 @@ class Tester:
         Main entry point - runs pytest and returns results
 
         Returns:
-            Dictionary with test results
+            Dictionary with test results:
+            {
+                "status": "success" | "failed" | "error",
+                "errors_count": int,
+                "errors_file": str or None,
+                "exit_code": int
+            }
         """
         logger.info("=" * 60)
         logger.info("Starting test execution...")
@@ -46,14 +52,26 @@ class Tester:
 
         # Execute pytest
         result = self._execute_pytest()
+        exit_code = result['returncode']
 
-        logger.info(f"Test execution finished with exit code: {result['returncode']}")
+        # Determine status based on exit code
+        if exit_code == 0:
+            status = "success"
+            logger.info("✓ All tests passed successfully!")
+        elif exit_code == -1:
+            # Special case: execution error (timeout, pytest not found, etc.)
+            status = "error"
+            logger.error("✗ Test execution failed due to system error")
+        else:
+            # pytest failed (exit code 1 or higher)
+            status = "failed"
+            logger.warning(f"✗ Tests failed with exit code: {exit_code}")
 
         return {
-            "status": "not_implemented",  # Will be implemented in next commit
-            "errors_count": 0,
+            "status": status,
+            "errors_count": 0,  # Will be updated when we parse errors
             "errors_file": None,
-            "exit_code": result['returncode']  # Added for debugging
+            "exit_code": exit_code
         }
 
     def _execute_pytest(self) -> Dict:
@@ -136,19 +154,3 @@ class Tester:
         """
         # TODO: Implement error saving
         pass
-
-
-# Quick test
-if __name__ == "__main__":
-    import sys
-
-    # Передай шлях до тестового проекту як аргумент
-    repo_path = sys.argv[1] if len(sys.argv) > 1 else "test-project"
-
-    print(f"Testing Tester agent with repo: {repo_path}")
-    tester = Tester(repo_path)
-    result = tester.run_tests()
-
-    print(f"\n{'=' * 60}")
-    print(f"Final Result: {result}")
-    print(f"{'=' * 60}")
