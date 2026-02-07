@@ -4,7 +4,6 @@ langgraph
 
 pydantic>=2.10.6
 serena-agent @ git+https://github.com/oraios/serena.git
-context7-mcp-python
 
 pyright
 python-dotenv
