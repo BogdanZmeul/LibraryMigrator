@@ -1,5 +1,4 @@
 import logging
-import sys
 import os
 
 def setup_logger():
@@ -20,7 +19,7 @@ def setup_logger():
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         handlers=[
             logging.FileHandler(log_filename, mode='w', encoding='utf-8'),
-            logging.StreamHandler(sys.stdout) # косоль
+            #logging.StreamHandler(sys.stdout) # косоль
         ],
         force=True
     )
