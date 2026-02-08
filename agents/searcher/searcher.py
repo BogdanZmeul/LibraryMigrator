@@ -13,6 +13,8 @@ from ..tools.context7_tool import Context7Tool
 from ..tools.io.json_handlers import save_json_file
 from .context7_refiner import Context7Refiner
 
+from agents.prompts.searcher_prompts import SEARCH_USAGES_SYSTEM_PROMPT
+
 logger = logging.getLogger(__name__)
 
 
@@ -100,16 +102,7 @@ class RepoSearcher:
 
     async def _extract_usages_with_llm(self, file_content: str, library_name: str, file_path: str) -> List[Dict]:
 
-        system_prompt = f"""You are an expert static code analysis tool.
-Your task is to analyze the provided source code and find ALL usages of the library '{library_name}'.
-
-1. Identify how the library is imported (e.g., `import {library_name} as alias`).
-2. Scan the code for any function calls, class instantiations, or attribute accesses related to that library alias.
-3. Extract the specific method name (e.g., from `pd.read_csv(...)` extract `read_csv`).
-4. Extract the exact line of code as a pattern.
-
-Ignore comments unless they contain relevant code.
-Return the result strictly in JSON format matching the schema."""
+        system_content = SEARCH_USAGES_SYSTEM_PROMPT.format(library_name=library_name)
 
         user_prompt = f"File: {file_path}\n\nCode Content:\n```\n{file_content}\n```"
 
@@ -117,7 +110,7 @@ Return the result strictly in JSON format matching the schema."""
 
         try:
             result = await structured_llm.ainvoke([
-                SystemMessage(content=system_prompt),
+                SystemMessage(content=system_content),
                 HumanMessage(content=user_prompt)
             ])
 
