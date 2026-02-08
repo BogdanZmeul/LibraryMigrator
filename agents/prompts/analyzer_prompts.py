@@ -67,6 +67,8 @@ Example of new code:
 `pd.concat([df, other])`
 Files: ["main.py", "utils.py"]
 ==================================================
+ADDITIONAL USER CONSTRAINTS:
+{additional_instructions}
 """
 
 FIX_SYSTEM_TEMPLATE = """
@@ -91,4 +93,7 @@ GUIDELINES:
 - The title must start with "FIX: ".
 - The description must be a direct instruction to the coder (e.g., "Change argument 'x' to 'y' in line 40").
 - Do not suggest reverting to the old version. Find the correct usage for version {new_version}.
+==================================================
+ADDITIONAL USER CONSTRAINTS:
+{additional_instructions}
 """
