@@ -62,7 +62,8 @@ def coder_node(state):
     files_context = ""
 
     for file_path in files_to_edit:
-        content = read_file(file_path)
+        full_read_path = os.path.join(project_path, file_path)
+        content = read_file(full_read_path)
         files_context += f"\n--- FILE: {file_path} ---\n{content}\n"
 
     tools = [write_file]
@@ -103,6 +104,8 @@ def coder_node(state):
         if ai_msg.tool_calls:
             for tool_call in ai_msg.tool_calls:
                 if tool_call["name"] == "write_file":
+                    args = tool_call["args"]
+                    args["file_path"] = os.path.join(project_path, args["file_path"])
                     logger.info(f"Coder: Executing write_file for {tool_call['args']['file_path']}")
                     write_file(**tool_call["args"])
         else:
