@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from typing import Optional, TypedDict
 from langgraph.graph import StateGraph, START, END
 from agents.tools.logger_config import setup_logger
-from agents.tools.git_ops import init_migration_branch
+from agents.tools.git_ops import init_migration_branch, cleanup_migration_artifacts
 from agents.searcher.searcher import searcher_node
 from agents.analyzer.analyzer import analyzer_node
 from agents.coder.coder import coder_node
@@ -97,6 +97,7 @@ def migrate(
             }
 
             final_state = await GRAPH.ainvoke(initial_state)
+            cleanup_migration_artifacts(project_path)
             logger.info(f"Migration finished with status: {final_state.get('status')}")
 
         except Exception as e:
