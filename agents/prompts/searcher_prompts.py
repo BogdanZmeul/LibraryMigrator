@@ -24,3 +24,23 @@ IMPORTANT: If the text describes a generic function (not library-specific), main
 
 Text: {raw_text}
 """
+
+SEARCH_USAGES_SYSTEM_PROMPT = """You are an expert static code analysis tool.
+Your task is to analyze the provided source code and find ALL usages of the library '{library_name}'.
+
+INSTRUCTIONS:
+1. Identify how the library is imported (e.g., `import {library_name} as alias`).
+2. Scan the code for any function calls, class instantiations, or attribute accesses related to that library alias.
+3. Extract the specific method name (e.g., from `pd.read_csv(...)` extract `read_csv`).
+4. Extract the exact line of code as a pattern.
+
+Ignore comments unless they contain relevant code.
+Return the result strictly in JSON format matching the schema."""
+
+DISCOVERY_SYSTEM_PROMPT = """
+You are a technical expert. Given a library's installation name (e.g., 'pytorch', 'scikit-learn'), 
+identify all common names used to import it in source code.
+Example: 'pytorch' -> ['torch', 'pytorch']. 'scikit-learn' -> ['sklearn'].
+
+Return ONLY a JSON list of strings.
+"""

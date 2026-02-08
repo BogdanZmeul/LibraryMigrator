@@ -1,7 +1,7 @@
 import json
 import os
 import logging
-from typing import List, Literal
+from typing import List, Literal, Optional
 from pydantic import BaseModel, Field
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import SystemMessage, HumanMessage
@@ -12,21 +12,29 @@ from agents.tools.io.json_handlers import load_json_file, save_json_file
 logger = logging.getLogger(__name__)
 
 BATCH_SIZE = 10
-ANALYZER_MODEL = "claude-3-5-sonnet-latest"
+ANALYZER_MODEL = "claude-opus-4-6"
+
+
+class MigrationExample(BaseModel):
+    before: str
+    after: str
 
 
 class UsagePattern(BaseModel):
     pattern_id: int
     title: str
-    code_example: str
+    status: str
     migration_guide: str
-    files: List[str]
+    occurrence_count: int
+    affected_files: List[str]
+    code_example: str
+    migration_example: Optional[MigrationExample] = None
 
 
 class MigrationTask(BaseModel):
     task_id: int
     title: str = Field(..., description="Short summary of the task")
-    description: str = Field(..., description="Detailed technical instruction for the coder")
+    description: str = Field(..., description="Detailed technical instruction for the coder. MUST include the 'after' code example.")
     files: List[str]
     status: Literal["pending"] = "pending"
 
@@ -42,9 +50,12 @@ def analyzer_node(state):
     plan_path = state.get("plan_path", "migration_plan.json")
     errors_path = state.get("errors_path", "errors.json")
 
-    lib_name = state.get("lib_name")
-    from_ver = state.get("from_ver")
-    to_ver = state.get("to_ver")
+    user_message = state.get("message")
+    additional_instructions = user_message if user_message else "No additional instructions provided."
+
+    library = state.get("library")
+    old_version = state.get("old_version")
+    new_version = state.get("new_version")
     api_key = os.getenv("ANTHROPIC_API_KEY")
 
     errors_data = load_json_file(errors_path)
@@ -76,9 +87,10 @@ def analyzer_node(state):
         return {"status": "error", "error": "LLM init failed"}
 
     formatted_system_text = system_template.format(
-        lib_name=lib_name,
-        from_ver=from_ver,
-        to_ver=to_ver
+        library=library,
+        old_version=old_version,
+        new_version=new_version,
+        additional_instructions=additional_instructions
     )
 
     system_message = SystemMessage(

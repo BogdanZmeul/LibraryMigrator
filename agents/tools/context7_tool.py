@@ -1,8 +1,8 @@
 import httpx
 import os
 import logging
-from typing import List, Dict, Any, Optional
-from ..prompts.searcher_promts import LIBRARY_API_PROMPT, MIGRATION_ADVICE_PROMPT
+from typing import Dict, Any, Optional
+from agents.prompts.searcher_prompts import MIGRATION_ADVICE_PROMPT
 
 logger = logging.getLogger(__name__)
 
@@ -12,18 +12,6 @@ class Context7Tool:
         self.base_url = "https://context7.com/api/v2"
         self.api_key = os.environ.get("CONTEXT7_API_KEY")
         self.library_ids = {}
-
-    async def get_library_public_api(self, library: str, version: str) -> List[str]:
-        real_id = await self._resolve_library_id(library)
-        if not real_id:
-            return []
-
-        query = LIBRARY_API_PROMPT.format(library=library, version=version)
-        data = await self._make_txt_request(real_id, query)
-
-        logger.info(f"Api for library '{library}': {data}")
-
-        return data
 
     async def get_migration_advice(self, library: str, element: str, old_v: str, new_v: str) -> str:
         real_id = await self._resolve_library_id(library)

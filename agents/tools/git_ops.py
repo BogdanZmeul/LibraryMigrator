@@ -1,6 +1,7 @@
 import subprocess
 import os
 import logging
+import shutil
 
 logger = logging.getLogger(__name__)
 
@@ -44,12 +45,16 @@ def init_migration_branch(path: str):
 
 def create_commit(path: str, title: str, description: str = None):
     try:
-        status = subprocess.run(["git", "-C", path, "status", "--porcelain"], capture_output=True, text=True)
+        status = subprocess.run(
+            ["git", "-C", path, "status", "--porcelain", "--", ".", ":!.serena"],
+            capture_output=True, text=True, check=True
+        )
+
         if not status.stdout.strip():
             logger.warning("There are no changes to the commit.")
             return
 
-        subprocess.run(["git", "-C", path, "add", "."], check=True)
+        subprocess.run(["git", "-C", path, "add", ".", ":!.serena"], check=True)
 
         cmd = ["git", "-C", path, "commit", "-m", title]
         if description:
@@ -60,3 +65,12 @@ def create_commit(path: str, title: str, description: str = None):
 
     except subprocess.CalledProcessError as e:
         logger.error(f"Failed to create commit: {e}")
+
+def cleanup_migration_artifacts(path: str):
+    serena_path = os.path.join(path, ".serena")
+    if os.path.exists(serena_path):
+        try:
+            shutil.rmtree(serena_path)
+            logger.info(f"Successfully cleaned up {serena_path}")
+        except Exception as e:
+            logger.error(f"Failed to cleanup .serena folder: {e}")

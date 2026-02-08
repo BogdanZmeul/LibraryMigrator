@@ -1,11 +1,11 @@
 import os
 import json
 import logging
-from typing import List, Dict, Any
+from typing import Dict, Any
 from langchain_anthropic import ChatAnthropic
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import CommaSeparatedListOutputParser, JsonOutputParser
-from ..prompts.searcher_promts import REFINE_API_LIST_PROMPT, REFINE_MIGRATION_JSON_PROMPT
+from ..prompts.searcher_prompts import REFINE_MIGRATION_JSON_PROMPT
 
 logger = logging.getLogger(__name__)
 
@@ -15,25 +15,10 @@ class Context7Refiner:
         self.llm = ChatAnthropic(
             model="claude-sonnet-4-5-20250929",
             anthropic_api_key=os.environ.get("ANTHROPIC_API_KEY"),
-            temperature=0,
-            max_tokens=4096
+            temperature=0
         )
         self.list_parser = CommaSeparatedListOutputParser()
         self.json_parser = JsonOutputParser()
-
-    async def refine_api_list(self, raw_text: str) -> List[str]:
-        logger.info("Cleaning up the API list...")
-        prompt = ChatPromptTemplate.from_template(REFINE_API_LIST_PROMPT)
-        chain = prompt | self.llm
-        try:
-            response = await chain.ainvoke({"raw_text": raw_text})
-            content = response.content if hasattr(response, 'content') else str(response)
-            names = [n.strip() for n in content.split(",") if len(n.strip()) > 1]
-            logger.info(f"Api list: {names}")
-            return names
-        except Exception as e:
-            logger.error(f"List refiner error: {e}")
-            return []
 
     async def refine_migration_advice(self, raw_text: str, element: str) -> Dict[str, Any]:
         logger.info(f"Generating JSON advice for {element}...")
