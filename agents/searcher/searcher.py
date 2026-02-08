@@ -37,7 +37,7 @@ class RepoSearcher:
         self.context_refiner = Context7Refiner()
 
         self.llm = ChatAnthropic(
-            model_name="claude-sonnet-4-5-20250929",
+            model_name="claude-opus-4-6",
             temperature=0,
             api_key=os.getenv("ANTHROPIC_API_KEY")
         )

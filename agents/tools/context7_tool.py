@@ -2,7 +2,7 @@ import httpx
 import os
 import logging
 from typing import List, Dict, Any, Optional
-from ..prompts.searcher_promts import LIBRARY_API_PROMPT, MIGRATION_ADVICE_PROMPT
+from agents.prompts.searcher_prompts import MIGRATION_ADVICE_PROMPT
 
 logger = logging.getLogger(__name__)
 

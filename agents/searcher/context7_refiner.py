@@ -5,7 +5,7 @@ from typing import List, Dict, Any
 from langchain_anthropic import ChatAnthropic
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import CommaSeparatedListOutputParser, JsonOutputParser
-from ..prompts.searcher_promts import REFINE_API_LIST_PROMPT, REFINE_MIGRATION_JSON_PROMPT
+from ..prompts.searcher_prompts import REFINE_MIGRATION_JSON_PROMPT
 
 logger = logging.getLogger(__name__)
 

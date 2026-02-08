@@ -12,7 +12,7 @@ from agents.tools.io.json_handlers import load_json_file, save_json_file
 logger = logging.getLogger(__name__)
 
 BATCH_SIZE = 10
-ANALYZER_MODEL = "claude-sonnet-4-5-20250929"
+ANALYZER_MODEL = "claude-opus-4-6"
 
 
 class MigrationExample(BaseModel):

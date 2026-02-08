@@ -13,7 +13,7 @@ from agents.prompts.coder_prompts import CODER_SYSTEM_TEMPLATE
 
 logger = logging.getLogger(__name__)
 
-CODER_MODEL = "claude-sonnet-4-5-20250929"
+CODER_MODEL = "claude-opus-4-6"
 
 
 def coder_node(state):
