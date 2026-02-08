@@ -78,9 +78,9 @@ It is impossible that mentioned library versions do not exist.
 INPUT DATA:
 You will receive a list of "Runtime Errors" extracted from the Tester.
 Each error contains:
-1. `message`: The error message (e.g., AttributeError, TypeError).
+1. `message`: The error message (e.g., AttributeError, TypeError or Ruff error description).
 2. `file`: The file where it happened.
-3. `context`: The specific code snippet that caused the crash.
+3. `context`: The specific code snippet that caused the error.
 
 YOUR RESPONSIBILITIES:
 1. Analyze the error message and the code context.

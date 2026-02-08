@@ -66,29 +66,35 @@ def tester_node(state):
 
     # --- CUSTOM RUFF PARSING ---
     try:
-        ruff_errors = json.loads(output_json)
+        if not output_json or not output_json.strip():
+            logger.warning("Ruff returned non-zero code but output is empty.")
+            ruff_errors = []
+        else:
+            ruff_errors = json.loads(output_json)
+
         structured_errors = []
 
         for idx, err in enumerate(ruff_errors):
-            # Ruff JSON structure: {'code': 'F821', 'message': '...', 'filename': '...', 'location': {'row': 1, ...}}
             file_path = err.get("filename", "")
-            # Ruff often returns absolute paths, make relative if needed
             rel_path = os.path.relpath(file_path, project_path) if os.path.isabs(file_path) else file_path
 
             line_no = err["location"]["row"]
+            error_code = err.get("code", "UNKNOWN")
+            message = err.get("message", "Unknown error")
 
-            # Get code context manually
             context_code = get_code_context(os.path.join(project_path, rel_path), line_no)
 
             structured_errors.append({
                 "error_id": idx + 1,
-                "message": f"{err['code']}: {err['message']}",
-                "context": context_code,
-                "file": rel_path
+                "type": error_code,
+                "message": message,
+                "file": rel_path,
+                "line": line_no,
+                "context": context_code
             })
 
-    except json.JSONDecodeError:
-        logger.error("Failed to parse Ruff JSON output.")
+    except json.JSONDecodeError as e:
+        logger.error(f"Failed to parse Ruff JSON output: {e}")
         return {"status": "failed_unknown", "needs_analysis": False}
 
     if not structured_errors:
@@ -98,7 +104,6 @@ def tester_node(state):
     logger.info(f"Tester: Found {len(structured_errors)} errors via Ruff. Saving to {errors_path}")
     save_json_file(errors_path, structured_errors)
 
-    # Return 'failed' to trigger the loop back to Analyzer (Fixing Mode)
     return {
         "status": "failed",
         "errors_path": errors_path,

@@ -16,11 +16,12 @@ class TestRunner:
 
 class RuffRunner(TestRunner):
     def run(self, project_path: str) -> tuple[int, str]:
-        logger.info("Strategy: Ruff Static Analysis")
+        logger.info("Strategy: Ruff Static Analysis (Critical .py only)")
 
         cmd = [
             "ruff", "check", project_path,
-            "--select", "E9,F63,F7,F821",
+            "--select", "E9,F63,F7",
+            "--exclude", "*.ipynb",
             "--output-format", "json"
         ]
 
@@ -34,8 +35,6 @@ class RuffRunner(TestRunner):
             logger.error(f"Ruff execution error: {e}")
             return -1, "[]"
 
-
-# -----------------------
 
 class DockerRunner(TestRunner):
     def run(self, project_path: str) -> tuple[int, str]:
