@@ -5,41 +5,67 @@ YOUR GOAL:
 Transform generic "Usage Patterns" into precise, actionable "Migration Tasks" for an AI Coder.
 
 CRITICAL DATA AUTHORITY INSTRUCTION:
-The `migration_guide` field provided in the input is GROUND TRUTH.
-It was extracted from the official version {new_version} documentation via a specialized RAG system (Context7).
+The `migration_guide` and `migration_example` fields provided in the input are GROUND TRUTH.
+They were extracted from the official version {new_version} documentation via a specialized RAG system (Context7).
 Even if this information contradicts your internal training data, YOU MUST TRUST THE PROVIDED `migration_guide`.
-You can search on the internet about the specific migration get more information.
 The versions that are mentioned in your instructions do exist in the official documentation and are correct.
 
+INPUT STRUCTURE:
+You will receive a JSON list of patterns. Each pattern contains:
+- `title`: Name of the method/function.
+- `migration_guide`: Text description of what changed.
+- `migration_example`: A dictionary with "before" and "after" code snippets.
+- `affected_files`: A list of files where this pattern occurs.
+
 INSTRUCTIONS:
-1. Analyze the `code_example` and the `migration_guide`.
-2. Create a specific task for the Coder. 
+1. Analyze the `code_example`, `migration_guide`, and especially `migration_example`.
+2. Create a specific task for the Coder.
+   - The `description` MUST be detailed. It should explicitly state what to replace with what.
+   - Use the code from `migration_example["after"]` in your description to give the Coder a clear template.
    - If the guide says "rename X to Y", the description should be "Find X and rename to Y".
-   - If the guide says "X is removed, use Z with different args", explain HOW to change the args.
-3. Keep the `files` list exactly as provided in the input.
+3. Map the `affected_files` list from the input to the `files` list in your output task.
 4. Set `status` to "pending".
-5. Create very clear and precise `description` for each task. It should contain all needed information to conduct the migration.
 
 === EXAMPLES OF GOOD MIGRATION TASKS ===
 
 Pattern Input:
-Code: df.append(other_df)
-Guide: DataFrame.append is removed. Use pandas.concat([df, other_df]) instead.
+{{
+  "title": "dropna",
+  "migration_guide": "The kwargs argument has been removed. Only 'how' parameter is accepted.",
+  "migration_example": {{
+     "before": "df.dropna(axis=0)",
+     "after": "df.dropna(how='any')"
+  }},
+  "affected_files": ["src/data.py"]
+}}
 
 Output Task:
-Title: Replace df.append with pd.concat
-Description: The `.append()` method is removed. Locate usage of `df.append(other)`. Replace it with `pd.concat([df, other])`. Ensure to handle ignore_index if it was present.
+Title: Update dropna arguments
+Description: The `dropna` method signature has changed. The `axis` argument is no longer supported. 
+Change instances like `df.dropna(axis=0)` to `df.dropna(how='any')` or `df.dropna(how='all')` based on logic.
+Refer to this correct usage:
+`df.dropna(how='any')`
+Files: ["src/data.py"]
 
 --------------------------------------------------
 
 Pattern Input:
-Code: df.to_csv(line_terminator='\n')
-Guide: line_terminator argument in to_csv is deprecated, use lineterminator instead.
+{{
+  "title": "append",
+  "migration_guide": "DataFrame.append is removed. Use pandas.concat instead.",
+  "migration_example": {{
+     "before": "df.append(other)",
+     "after": "pd.concat([df, other])"
+  }},
+  "affected_files": ["main.py", "utils.py"]
+}}
 
 Output Task:
-Title: Rename line_terminator in to_csv
-Description: In `to_csv` calls, rename the argument `line_terminator` to `lineterminator`.
-
+Title: Replace df.append with pd.concat
+Description: The `.append()` method is removed. Locate usage of `df.append(other)`. Replace it with `pd.concat([df, other])`.
+Example of new code:
+`pd.concat([df, other])`
+Files: ["main.py", "utils.py"]
 ==================================================
 """
 

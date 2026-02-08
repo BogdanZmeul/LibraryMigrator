@@ -1,7 +1,7 @@
 import json
 import os
 import logging
-from typing import List, Literal
+from typing import List, Literal, Dict, Optional
 from pydantic import BaseModel, Field
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import SystemMessage, HumanMessage
@@ -15,18 +15,26 @@ BATCH_SIZE = 10
 ANALYZER_MODEL = "claude-sonnet-4-5-20250929"
 
 
+class MigrationExample(BaseModel):
+    before: str
+    after: str
+
+
 class UsagePattern(BaseModel):
     pattern_id: int
     title: str
-    code_example: str
+    status: str
     migration_guide: str
-    files: List[str]
+    occurrence_count: int
+    affected_files: List[str]
+    code_example: str
+    migration_example: Optional[MigrationExample] = None
 
 
 class MigrationTask(BaseModel):
     task_id: int
     title: str = Field(..., description="Short summary of the task")
-    description: str = Field(..., description="Detailed technical instruction for the coder")
+    description: str = Field(..., description="Detailed technical instruction for the coder. MUST include the 'after' code example.")
     files: List[str]
     status: Literal["pending"] = "pending"
 
