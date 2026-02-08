@@ -13,18 +13,6 @@ class Context7Tool:
         self.api_key = os.environ.get("CONTEXT7_API_KEY")
         self.library_ids = {}
 
-    async def get_library_public_api(self, library: str, version: str) -> List[str]:
-        real_id = await self._resolve_library_id(library)
-        if not real_id:
-            return []
-
-        query = LIBRARY_API_PROMPT.format(library=library, version=version)
-        data = await self._make_txt_request(real_id, query)
-
-        logger.info(f"Api for library '{library}': {data}")
-
-        return data
-
     async def get_migration_advice(self, library: str, element: str, old_v: str, new_v: str) -> str:
         real_id = await self._resolve_library_id(library)
         if not real_id:

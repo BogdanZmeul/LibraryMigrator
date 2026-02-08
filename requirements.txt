@@ -10,6 +10,4 @@ python-dotenv
 libcst
 ruff
 pytest
-typer
-rich
 typer>=0.9.0
