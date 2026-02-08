@@ -14,9 +14,12 @@ from ..tools.io.json_handlers import save_json_file
 from .context7_refiner import Context7Refiner
 
 from agents.prompts.searcher_prompts import SEARCH_USAGES_SYSTEM_PROMPT
+from ..prompts.searcher_prompts import DISCOVERY_SYSTEM_PROMPT
 
 logger = logging.getLogger(__name__)
 
+class DiscoveryResult(BaseModel):
+    import_names: List[str] = Field(description="List of package names used in import statements")
 
 class LibraryUsage(BaseModel):
     method_name: str = Field(
@@ -43,13 +46,35 @@ class RepoSearcher:
         )
         self.parser = PydanticOutputParser(pydantic_object=FileAnalysisResult)
 
+    async def _discover_import_names(self, library: str) -> List[str]:
+        logger.info(f"Discovery: Asking LLM for import names of '{library}'...")
+
+        structured_llm = self.llm.with_structured_output(DiscoveryResult)
+
+        try:
+            result: DiscoveryResult = await structured_llm.ainvoke([
+                SystemMessage(content=DISCOVERY_SYSTEM_PROMPT),
+                HumanMessage(content=f"Identify code-level import names for the library: {library}")
+            ])
+
+            names = result.import_names
+            if library not in names:
+                names.append(library)
+
+            return names
+        except Exception as e:
+            logger.warning(f"Discovery failed: {e}")
+            return [library]
+
     async def execute_full_search(self, library: str, old_version: str, new_version: str):
         logger.info(f"Universal search: {library} ({old_version} -> {new_version})")
 
+        import_names = await self._discover_import_names(library)
+
         await self.serena.start()
 
-        candidate_files = await self.serena.find_candidate_files(library)
-        logger.info(f"Serena found {len(candidate_files)} candidate files containing '{library}'.")
+        candidate_files = await self.serena.find_candidate_files(import_names)
+        logger.info(f"Serena found {len(candidate_files)} candidate files containing '{import_names}'.")
 
         raw_usages = []
 

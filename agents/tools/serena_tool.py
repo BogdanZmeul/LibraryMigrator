@@ -30,20 +30,24 @@ class SerenaTool:
             logger.error(f"Error when starting Serena: {e}")
             raise
 
-    async def find_candidate_files(self, library_name: str) -> List[str]:
+    async def find_candidate_files(self, search_patterns: List[str]) -> List[str]:
         search_tool = self.agent.get_tool_by_name("search_for_pattern")
+        all_found_files = set()
 
-        search_res = search_tool.apply(
-            substring_pattern=library_name,
-            restrict_search_to_code_files=True
-        )
+        for pattern in search_patterns:
+            logger.info(f"Serena: Scanning for import name '{pattern}'...")
+            try:
+                search_res = search_tool.apply(
+                    substring_pattern=pattern,
+                    restrict_search_to_code_files=True
+                )
+                parsed = self._parse_serena_output(search_res)
+                if parsed:
+                    all_found_files.update(parsed.keys())
+            except Exception as e:
+                logger.error(f"Serena search failed for {pattern}: {e}")
 
-        parsed_results = self._parse_serena_output(search_res)
-
-        if not parsed_results:
-            return []
-
-        return list(parsed_results.keys())
+        return list(all_found_files)
 
     async def read_file(self, file_path: str) -> str:
         read_tool = self.agent.get_tool_by_name("read_file")

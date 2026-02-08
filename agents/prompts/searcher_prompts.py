@@ -36,3 +36,11 @@ INSTRUCTIONS:
 
 Ignore comments unless they contain relevant code.
 Return the result strictly in JSON format matching the schema."""
+
+DISCOVERY_SYSTEM_PROMPT = """
+You are a technical expert. Given a library's installation name (e.g., 'pytorch', 'scikit-learn'), 
+identify all common names used to import it in source code.
+Example: 'pytorch' -> ['torch', 'pytorch']. 'scikit-learn' -> ['sklearn'].
+
+Return ONLY a JSON list of strings.
+"""
