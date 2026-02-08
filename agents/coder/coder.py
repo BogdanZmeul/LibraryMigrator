@@ -19,6 +19,9 @@ CODER_MODEL = "claude-sonnet-4-5-20250929"
 def coder_node(state):
     logger.info("Coder: Start working...")
 
+    user_message = state.get("message")
+    additional_instructions = user_message if user_message else "No additional instructions provided."
+
     plan_path = state.get("plan_path", "migration_plan.json")
     project_path = state.get("project_path", ".")
 
@@ -89,7 +92,8 @@ def coder_node(state):
         new_version=new_version,
         task_title=current_task['title'],
         task_description=current_task['description'],
-        file_list=", ".join(files_to_edit)
+        file_list=", ".join(files_to_edit),
+        additional_instructions=additional_instructions
     )
 
     messages = [
@@ -97,6 +101,7 @@ def coder_node(state):
         HumanMessage(content=f"Here is the code context:\n{files_context}\n\nPlease perform the task.")
     ]
 
+    changes_made = False
     try:
         logger.info("Coder: Invoking LLM to perform edits...")
         ai_msg = llm_with_tools.invoke(messages)
@@ -108,8 +113,9 @@ def coder_node(state):
                     args["file_path"] = os.path.join(project_path, args["file_path"])
                     logger.info(f"Coder: Executing write_file for {tool_call['args']['file_path']}")
                     write_file(**tool_call["args"])
+                    changes_made = True
         else:
-            logger.warning("Coder: LLM did not call write_file tool. Code might not be updated.")
+            logger.info("Coder: LLM decided no changes are needed for these files.")
 
     except Exception as e:
         logger.error(f"Coder: LLM execution failed: {e}")
@@ -119,8 +125,11 @@ def coder_node(state):
             "has_pending_tasks": False
         }
 
-    commit_msg = f"Refactor: {current_task['title']}"
-    create_commit(project_path, commit_msg, description=current_task.get("description"))
+    if changes_made:
+        commit_msg = f"Refactor: {current_task['title']}"
+        create_commit(project_path, commit_msg, description=current_task.get("description"))
+    else:
+        logger.info(f"Coder: Skipping commit for task {current_task['task_id']} (no changes made).")
 
     migration_plan = load_json_file(plan_path)
 

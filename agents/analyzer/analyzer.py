@@ -50,6 +50,9 @@ def analyzer_node(state):
     plan_path = state.get("plan_path", "migration_plan.json")
     errors_path = state.get("errors_path", "errors.json")
 
+    user_message = state.get("message")
+    additional_instructions = user_message if user_message else "No additional instructions provided."
+
     library = state.get("library")
     old_version = state.get("old_version")
     new_version = state.get("new_version")
@@ -86,7 +89,8 @@ def analyzer_node(state):
     formatted_system_text = system_template.format(
         library=library,
         old_version=old_version,
-        new_version=new_version
+        new_version=new_version,
+        additional_instructions=additional_instructions
     )
 
     system_message = SystemMessage(
