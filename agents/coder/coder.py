@@ -1,10 +1,8 @@
 import os
 import logging
-from typing import List, Dict
 
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import SystemMessage, HumanMessage
-from langchain_core.tools import tool
 
 from agents.tools.io.json_handlers import load_json_file, save_json_file
 from agents.tools.io.file_ops import read_file, write_file

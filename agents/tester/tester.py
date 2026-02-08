@@ -2,8 +2,7 @@ import os
 import logging
 import json
 from agents.tools.io.json_handlers import save_json_file
-from agents.tools.testing.python.run_strategies import DockerRunner, LocalRunner, RuffRunner
-from agents.tools.testing.python.error_parser import parse_python_traceback
+from agents.tools.testing.python.run_strategies import RuffRunner
 from agents.tools.testing.common import get_code_context
 
 logger = logging.getLogger(__name__)

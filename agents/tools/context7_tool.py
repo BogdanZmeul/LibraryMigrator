@@ -1,7 +1,7 @@
 import httpx
 import os
 import logging
-from typing import List, Dict, Any, Optional
+from typing import Dict, Any, Optional
 from agents.prompts.searcher_prompts import MIGRATION_ADVICE_PROMPT
 
 logger = logging.getLogger(__name__)
