@@ -18,53 +18,15 @@ def tester_node(state):
     # clean previous errors
     save_json_file(errors_path, [])
 
-    # --- OLD LOGIC COMMENTED OUT FOR DEBUGGING ---
-    # # look for docker in the client's repository
-    # has_docker = os.path.exists(os.path.join(project_path, "Dockerfile")) or \
-    #              os.path.exists(os.path.join(project_path, "docker-compose.yml"))
-    #
-    # runner = None
-    # if has_docker:
-    #     runner = DockerRunner()
-    # else:
-    #     # Check for requirements.txt for LocalRunner
-    #     if os.path.exists(os.path.join(project_path, "requirements.txt")):
-    #         runner = LocalRunner()
-    #     else:
-    #         logger.warning("No Dockerfile or requirements.txt found. Cannot determine run strategy.")
-    #         return {"status": "cannot_test", "needs_analysis": False}
-    #
-    # # run code
-    # return_code, stderr = runner.run(project_path)
-    # ---------------------------------------------
-
-    # --- NEW RUFF STRATEGY ---
     runner = RuffRunner()
-    # Ruff повертає (return_code, stdout_json)
     return_code, output_json = runner.run(project_path)
-    # -------------------------
 
-    # --- OLD ERROR HANDLING COMMENTED OUT ---
-    # # CASE A: Dependency Conflict (-2 code from our runner)
-    # if return_code == -2:
-    #     logger.error("Dependency conflict detected during installation/build.")
-    #     # We do NOT write to errors.json because this is not a code fixable by Analyzer
-    #     return {
-    #         "status": "dependency_error",
-    #         "message": "Migration complete, but tests failed due to dependency conflicts. Manual update required.",
-    #         "needs_analysis": False
-    #     }
-    # ----------------------------------------
-
-    # CASE B: Success (0)
     if return_code == 0:
         logger.info("Ruff finished successfully. No errors detected.")
         return {"status": "success", "needs_analysis": False}
 
-    # CASE C: Runtime/Linting Errors (Non-zero)
     logger.info(f"Ruff found errors (RC={return_code}). Parsing JSON logs...")
 
-    # --- CUSTOM RUFF PARSING ---
     try:
         if not output_json or not output_json.strip():
             logger.warning("Ruff returned non-zero code but output is empty.")

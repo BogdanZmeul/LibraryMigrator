@@ -136,15 +136,13 @@ The core of the system is a **LangGraph-driven Cyclic Architecture**. It consist
 
 -   **Role:** Validates the code.
 
--   **Tech:** Ruff (Linting) + Docker (Isolation).
+-   **Tech:** Ruff (Linting).
 
 -   **Process:**
 
     1.  Runs static analysis (Ruff) to catch syntax errors instantly.
 
-    2.  Runs the project in an isolated **Docker Container** to ensure the environment matches production.
-
-    3.  **Self-Healing Loop:** If tests fail, it parses the error logs into `errors.json` and sends the workflow **back to the Analyzer**.
+    2. **Self-Healing Loop:** If tests fail, it parses the error logs into `errors.json` and sends the workflow **back to the Analyzer**.
 
 * * * * *
 
