@@ -13,9 +13,6 @@ class RuntimeErrorData(BaseModel):
 
 
 def get_code_context(file_path: str, line_number: int, context_window: int = 10) -> str:
-    """
-    Reads the file and returns lines around the specific line number.
-    """
     if not os.path.exists(file_path):
         return f"Error: File {file_path} not found locally."
 

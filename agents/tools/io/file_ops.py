@@ -5,9 +5,6 @@ logger = logging.getLogger(__name__)
 
 
 def read_file(file_path: str) -> str:
-    """
-    Reads the content of a file.
-    """
     if not os.path.exists(file_path):
         logger.error(f"File not found: {file_path}")
         return f"Error: File {file_path} does not exist."
@@ -23,11 +20,7 @@ def read_file(file_path: str) -> str:
 
 
 def write_file(file_path: str, content: str) -> str:
-    """
-    Overwrites the file with new content.
-    """
     try:
-        # Ensure directory exists
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
 
         with open(file_path, "w", encoding="utf-8") as f:

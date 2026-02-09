@@ -6,9 +6,6 @@ logger = logging.getLogger(__name__)
 
 class TestRunner:
     def run(self, project_path: str) -> tuple[int, str]:
-        """
-        Returns (return_code, stderr_output)
-        """
         raise NotImplementedError
 
 

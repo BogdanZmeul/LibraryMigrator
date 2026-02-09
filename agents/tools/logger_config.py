@@ -3,10 +3,6 @@ import os
 
 
 def setup_logger():
-    """
-    Configure the global logger.
-    Call this once at startup in main.py.
-    """
     log_filename = "agent.log"
 
     if not os.access("..", os.W_OK):

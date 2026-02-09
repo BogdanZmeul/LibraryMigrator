@@ -8,9 +8,6 @@ logger = logging.getLogger(__name__)
 
 
 def parse_python_traceback(stderr: str, project_path: str) -> List[Dict]:
-    """
-    Parses Python stderr to extract structured errors.
-    """
     errors = []
     error_id_counter = 0
 
