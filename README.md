@@ -54,11 +54,7 @@ python main.py [PROJECT_PATH] --lib [LIBRARY_NAME] --from [OLD_VERSION] --to [NE
 Bash
 
 ```
-python main.py /app/my-legacy-project\
-  --lib pandas\
-  --from 1.3.5\
-  --to 2.1.0\
-  --message "Focus on replacing deprecated append methods"
+docker-compose exec migrator_agent python main.py /app/sandbox/python-machine-learning-book-3rd-edition -l pandas  -ov 1.3  -nv 2.0
 
 ```
 
@@ -140,9 +136,9 @@ The core of the system is a **LangGraph-driven Cyclic Architecture**. It consist
 
 -   **Process:**
 
-    1.  Runs static analysis (Ruff) to catch syntax errors instantly.
+    - Runs static analysis (Ruff) to catch syntax errors instantly.
 
-    2. **Self-Healing Loop:** If tests fail, it parses the error logs into `errors.json` and sends the workflow **back to the Analyzer**.
+    - **Self-Healing Loop:** If tests fail, it parses the error logs into `errors.json` and sends the workflow **back to the Analyzer**.
 
 * * * * *
 
